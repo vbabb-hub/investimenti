@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Piano investimenti</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#eef2f6;--sf:#fff;--ink:#12202e;--mut:#5b6b7a;--ac:#0f766e;--ac2:#d7ece9;--ln:#d5dde5;--bad:#b45309;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e161d;--sf:#16212b;--ink:#e8eef3;--mut:#9fb0be;--ac:#4fd1c0;--ac2:#17353a;--ln:#2a3947;--bad:#f0a25a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+h1{font:600 1.05rem/1.2 system-ui,sans-serif;margin:0;padding:14px 18px 4px;color:var(--mut)}
+main{max-width:640px;margin:0 auto;padding:6px 14px 20px}
+section[hidden]{display:none}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.82rem;color:var(--mut);margin-bottom:4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:11px 12px;min-height:44px}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.hero{font:600 2.6rem/1.1 Georgia,"Iowan Old Style",serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin:6px 0 2px}
+.sub{color:var(--mut);font-size:.9rem}
+.seg{display:flex;gap:6px;margin:4px 0 8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-height:44px;border:1px solid var(--ln);background:var(--bg);color:var(--ink);border-radius:10px;font:inherit;padding:6px 8px}
+.seg button[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:14px 0 6px;background:var(--ln)}
+.bar i{display:block;height:100%}
+.bar .v{background:var(--mut);opacity:.55}.bar .g{background:var(--ac)}
+.leg{display:flex;justify-content:space-between;font-size:.82rem;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-weight:500;color:var(--mut);font-size:.8rem;text-align:right;padding:4px 0}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:9px 0;border-top:1px solid var(--ln)}
+tr.sel td{font-weight:600;color:var(--ac)}
+.ok{color:var(--ac);font-weight:600}.no{color:var(--bad)}
+.verdict{background:var(--ac2);border-radius:10px;padding:10px 12px;margin-top:10px;font-weight:600}
+.note{font-size:.82rem;color:var(--mut);margin:8px 2px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--sf);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;min-height:60px;border:0;background:none;color:var(--mut);font:inherit;font-size:.82rem}
+nav button[aria-current=page]{color:var(--ac);font-weight:700;box-shadow:inset 0 3px 0 var(--ac)}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.ph b{font:600 1.15rem Georgia,serif}.ph span{font-variant-numeric:tabular-nums;color:var(--ac);font-weight:600}.pd{margin:6px 0 8px;font-size:.92rem}.pm{font-size:.82rem;color:var(--mut);margin:0 0 6px}
+.rs{font-variant-numeric:tabular-nums;font-size:.85rem}.ov{color:var(--bad);font-weight:600}.os{color:var(--ac);font-weight:600}.chip{min-height:44px}.li{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--ln)}.li a{color:var(--ac);font-weight:600}
+.reset{margin-top:6px;min-height:44px;border:1px solid var(--ln);background:none;color:var(--ink);border-radius:10px;font:inherit;padding:0 14px}
+</style>
+</head>
+<body>
+<h1 id="ttl">Simula il tuo capitale</h1>
+<main>
+<section id="p-sim">
+ <div class="card">
+  <div class="grid">
+   <div><label for="c1">Capitale iniziale (€)</label><input id="c1" data-k="c" type="number" inputmode="decimal" min="0"></div>
+   <div><label for="p1">Versamento mensile (€)</label><input id="p1" data-k="p" type="number" inputmode="decimal" min="0"></div>
+  </div>
+  <div style="margin-top:12px"><label for="y1">Anni</label><input id="y1" data-k="y" type="number" inputmode="decimal" min="1" max="50"></div>
+ </div>
+ <div class="card">
+  <label>Profilo</label>
+  <div class="seg" id="seg"></div>
+  <div class="hero" id="hero"></div>
+  <div class="sub" id="herosub"></div>
+  <div class="bar"><i class="v" id="bv"></i><i class="g" id="bg"></i></div>
+  <div class="leg"><span id="lv"></span><span id="lg"></span></div>
+ </div>
+ <div class="card"><table><thead><tr><th>Profilo</th><th>Netto annuo</th><th>Capitale finale</th></tr></thead><tbody id="t1"></tbody></table></div>
+ <p class="note">Valori netti dopo le tasse, versamenti a fine mese, rendimento annuo costante. Sono ipotesi, non previsioni né garanzie.</p>
+</section>
+
+<section id="p-obj" hidden>
+ <div class="card">
+  <label for="t2">Obiettivo netto (€)</label><input id="t2" data-k="t" type="number" inputmode="decimal" min="0">
+  <div class="grid" style="margin-top:12px">
+   <div><label for="c2">Capitale iniziale (€)</label><input id="c2" data-k="c" type="number" inputmode="decimal" min="0"></div>
+   <div><label for="p2">Versamento mensile (€)</label><input id="p2" data-k="p" type="number" inputmode="decimal" min="0"></div>
+  </div>
+  <div style="margin-top:12px"><label for="y2">Anni</label><input id="y2" data-k="y" type="number" inputmode="decimal" min="1" max="50"></div>
+ </div>
+ <div class="card">
+  <div class="sub">Rendimento netto annuo necessario</div>
+  <div class="hero" id="need"></div>
+  <div class="verdict" id="verd"></div>
+ </div>
+ <div class="card"><table><thead><tr><th>Profilo</th><th>Capitale finale</th><th>Mensile necessario</th></tr></thead><tbody id="t2b"></tbody></table></div>
+ <p class="note">«Mensile necessario» è il versamento che porterebbe quel profilo esattamente all’obiettivo. Il profilo adeguato è il meno rischioso che ci arriva.</p>
+</section>
+
+<section id="p-mkt" hidden>
+ <div class="seg"><button type="button" id="mA" aria-pressed="true">Azioni USA</button><button type="button" id="mD" aria-pressed="false">Dataroma</button></div>
+ <p class="note" id="mst" role="status"></p>
+ <div id="vA"><div class="seg" id="flt"></div><input id="q" placeholder="Cerca ticker o nome" aria-label="Cerca"><div class="card"><table><thead><tr><th>Titolo</th><th>Prezzo</th><th>1h</th><th>1g</th><th>1s</th></tr></thead><tbody id="tA"></tbody></table><button class="reset" id="more" type="button">Mostra altri</button></div><p class="note">RSI a 14 periodi: 70 o più ipercomprato (rosso), 30 o meno ipervenduto (verde). Dati ritardati, aggiornati ogni sera. Non è una raccomandazione.</p></div>
+ <div id="vD" hidden></div>
+</section>
+<section id="p-set" hidden>
+ <div id="prof"></div>
+ <div class="card">
+  <div class="sub" style="margin-bottom:8px">Rendimento netto annuo atteso (%)</div>
+  <div class="grid" id="rates"></div>
+  <p class="note">Valori di partenza dal file Excel: medie delle stime J.P. Morgan 2027, convertite in euro e al netto delle tasse. Modificandoli cambiano i calcoli, non il lordo mostrato sopra.</p>
+  <button class="reset" id="reset" type="button">Ripristina valori di partenza</button>
+ </div>
+ <div class="card">
+  <div class="sub" style="margin-bottom:8px">Cambio euro e dollaro</div>
+  <label for="fx">Dollari per 1 euro</label><input id="fx" data-k="fx" type="number" inputmode="decimal" step="0.0001" min="0">
+  <div class="grid" style="margin-top:12px">
+   <div><label for="usd">Dollari (USD)</label><input id="usd" data-k="usd" type="number" inputmode="decimal"></div>
+   <div><label for="eur">Euro (EUR)</label><input id="eur" data-k="eur" type="number" inputmode="decimal"></div>
+  </div>
+  <p class="note" id="fxs" role="status"></p>
+  <button class="reset" id="fxb" type="button">Aggiorna il cambio</button>
+ </div>
+</section>
+</main>
+<nav>
+ <button data-p="sim" aria-current="page">Simula</button>
+ <button data-p="obj">Obiettivo</button>
+ <button data-p="mkt">Mercato</button>
+ <button data-p="set">Profili e cambio</button>
+</nav>
+<script>
+const NAMES=["Basso","Medio","Alto","Bitcoin"];
+const DEF={c:10000,p:100,y:10,t:30000,sel:1,r:[3.72,4.20,5.17,5.85],fx:1.1217,usd:1000,eur:null,fxSrc:"auto",fxDate:null};
+let S=JSON.parse(JSON.stringify(DEF));
+try{const x=JSON.parse(localStorage.getItem("piano")||"null");if(x&&Array.isArray(x.r))S=Object.assign(S,x)}catch(e){}
+const save=()=>{try{localStorage.setItem("piano",JSON.stringify(S))}catch(e){}};
+const PROF=[
+{g:4.66,t:20.2,d:"Difende il capitale: titoli di Stato italiani e obbligazioni in euro, liquidità e una piccola quota di azioni. Oscillazioni contenute, ma rendimento più basso.",i:[["BTP a 3-10 anni",40,5.00],["ETF obbligazionario area euro",30,4.80],["Monetario o deposito",20,2.60],["ETF azionario globale",10,7.00]]},
+{g:5.67,t:26,d:"Equilibrio tra obbligazioni e azioni: la metà in obbligazioni globali coperte dal cambio e liquidità, il resto in azioni sviluppate ed emergenti.",i:[["ETF obbligazionario globale (hedged in euro)",40,4.90],["ETF azionario mondiale (MSCI World)",40,7.00],["ETF azionario mercati emergenti",10,6.54],["Monetario o deposito",10,2.60]]},
+{g:6.98,t:26,d:"Solo azioni, diversificate tra sviluppate, emergenti, small cap e tematici. Oscillazioni forti: ha senso con un orizzonte lungo.",i:[["ETF azionario mondiale (MSCI World)",40,7.00],["ETF azionario mercati emergenti",20,6.54],["ETF azionario small cap",20,7.43],["ETF tematici (semiconduttori, tecnologia)",20,6.94]]},
+{g:8.74,t:33,d:"Un solo asset, molto volatile: in passato ha avuto cali del 65–75% in un anno. Il rendimento atteso è la media tra il trend dei cicli di 4 anni e la stima J.P. Morgan.",i:[["Bitcoin",100,8.74]]}];
+const f2=v=>new Intl.NumberFormat("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const $=id=>document.getElementById(id);
+const eur=v=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v);
+const pct=v=>new Intl.NumberFormat("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v*100)+"%";
+const num=v=>Number.isFinite(+v)?+v:0;
+function fv(c,p,r,y){if(Math.abs(r)<1e-12)return c+p*12*y;const g=Math.pow(1+r,y);return c*g+p*(g-1)/(Math.pow(1+r,1/12)-1)}
+function need(c,p,y,t){let lo=-0.5,hi=5;if(fv(c,p,hi,y)<t)return null;if(fv(c,p,lo,y)>=t)return lo;for(let i=0;i<80;i++){const m=(lo+hi)/2;fv(c,p,m,y)<t?lo=m:hi=m}return hi}
+function monthly(c,r,y,t){if(Math.abs(r)<1e-12)return Math.max(0,(t-c)/(y*12));const g=Math.pow(1+r,y);return Math.max(0,(t-c*g)*(Math.pow(1+r,1/12)-1)/(g-1))}
+function sync(skip){document.querySelectorAll("[data-k]").forEach(i=>{if(i!==skip){const v=S[i.dataset.k];i.value=v==null?"":(Math.round(v*10000)/10000)}})}
+function update(){
+ const c=num(S.c),p=num(S.p),y=Math.max(1,num(S.y)),t=num(S.t),vers=c+p*12*y;
+ const fin=S.r.map(r=>fv(c,p,r/100,y));
+ $("seg").innerHTML=NAMES.map((n,i)=>`<button type="button" data-s="${i}" aria-pressed="${i==S.sel}">${n}</button>`).join("");
+ $("hero").textContent=eur(fin[S.sel]);
+ const gain=fin[S.sel]-vers;
+ $("herosub").textContent=`dopo ${y} ${y==1?"anno":"anni"} con il profilo ${NAMES[S.sel]} (${pct(S.r[S.sel]/100)} netto annuo)`;
+ const tot=Math.max(fin[S.sel],1),vw=Math.min(100,vers/tot*100);
+ $("bv").style.width=vw+"%";$("bg").style.width=Math.max(0,100-vw)+"%";
+ $("lv").textContent="Versato "+eur(vers);$("lg").textContent=(gain>=0?"Guadagno ":"Perdita ")+eur(Math.abs(gain));
+ $("t1").innerHTML=NAMES.map((n,i)=>`<tr class="${i==S.sel?"sel":""}"><td>${n}</td><td>${pct(S.r[i]/100)}</td><td>${eur(fin[i])}</td></tr>`).join("");
+ const nr=need(c,p,y,t);
+ $("need").textContent=nr==null?"oltre il 500%":pct(nr);
+ const ok=fin.map(v=>v>=t-0.005),first=ok.indexOf(true);
+ $("verd").textContent=first>=0?`Profilo adeguato: ${NAMES[first]}`:"Nessun profilo arriva all’obiettivo con questi dati";
+ $("t2b").innerHTML=NAMES.map((n,i)=>`<tr><td>${n}</td><td class="${ok[i]?"ok":"no"}">${eur(fin[i])}</td><td>${eur(monthly(c,S.r[i]/100,y,t))}</td></tr>`).join("");
+ $("prof").innerHTML=PROF.map((p,i)=>`<div class="card"><div class="ph"><b>${NAMES[i]}</b><span>${f2(S.r[i])}% netto annuo</span></div><p class="pm">Lordo ${f2(p.g)}% all’anno, tasse medie ${f2(p.t)}%</p><p class="pd">${p.d}</p><table><thead><tr><th>Cosa copre</th><th>Peso</th><th>Lordo atteso</th></tr></thead><tbody>${p.i.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}%</td><td>${f2(x[2])}%</td></tr>`).join("")}</tbody></table></div>`).join("");
+ if(S.fx>0){S.eur=num(S.usd)/S.fx}
+}
+function build(){
+ $("rates").innerHTML=NAMES.map((n,i)=>`<div><label for="r${i}">${n}</label><input id="r${i}" data-r="${i}" type="number" inputmode="decimal" step="0.01" value="${S.r[i]}"></div>`).join("");
+ $("seg").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(b){S.sel=+b.dataset.s;save();update()}});
+ $("rates").addEventListener("input",e=>{const i=e.target.dataset.r;if(i!=null){S.r[i]=num(e.target.value);save();update()}});
+ document.querySelectorAll("[data-k]").forEach(i=>i.addEventListener("input",()=>{
+  const k=i.dataset.k;S[k]=i.value===""?0:+i.value;
+  if(k=="usd"&&S.fx>0)S.eur=S.usd/S.fx;
+  if(k=="eur"&&S.fx>0)S.usd=S.eur*S.fx;
+  if(k=="fx"){S.fxSrc="man";if(S.fx>0)S.eur=S.usd/S.fx;fxStatus()}
+  save();update();sync(i)}));
+ $("reset").addEventListener("click",()=>{S.r=DEF.r.slice();S.fx=DEF.fx;S.fxSrc="man";$("rates").querySelectorAll("input").forEach((x,i)=>x.value=S.r[i]);save();update();sync()});
+ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  const p=b.dataset.p;document.querySelectorAll("section").forEach(s=>s.hidden=s.id!="p-"+p);
+  document.querySelectorAll("nav button").forEach(x=>x.removeAttribute("aria-current"));b.setAttribute("aria-current","page");
+  $("ttl").textContent={sim:"Simula il tuo capitale",obj:"Quanto serve per arrivare all’obiettivo",mkt:"Dati di mercato",set:"Profili e cambio"}[p];window.scrollTo(0,0)}));
+}
+const fmtD=d=>d?d.split("-").reverse().join("/"):"";
+function fxStatus(fail){$("fxs").textContent=fail?"Cambio automatico non disponibile: resta il valore attuale, che puoi modificare a mano.":S.fxSrc=="auto"&&S.fxDate?"Cambio automatico del "+fmtD(S.fxDate)+" (Frankfurter, tassi della Banca centrale europea).":"Cambio inserito a mano: premi «Aggiorna il cambio» per usare quello automatico."}
+async function loadFx(){
+ const urls=["https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD","https://api.frankfurter.app/latest?from=EUR&to=USD"];
+ $("fxs").textContent="Aggiorno il cambio…";
+ for(const u of urls){
+  try{
+   const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),6000);
+   const r=await fetch(u,{signal:ctl.signal,cache:"no-store"});clearTimeout(tm);
+   if(!r.ok)continue;
+   const d=await r.json(),v=d&&d.rates&&d.rates.USD;
+   if(v>0){S.fx=v;S.fxSrc="auto";S.fxDate=d.date||null;S.eur=num(S.usd)/v;save();update();sync();fxStatus();return}
+  }catch(e){}
+ }
+ fxStatus(true);
+}
+$("fxb").addEventListener("click",loadFx);
+let AZ=null,DR=null,flt=0,lim=100;
+const FL=["Tutti","Ipervenduto 1g","Ipercomprato 1g"];
+const cl=v=>v==null?"":v>=70?"ov":v<=30?"os":"";
+const ts=u=>new Date(u).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"});
+async function getJ(n){const r=await fetch("dati/"+n+".json",{cache:"no-store"});if(!r.ok)throw 0;return r.json()}
+function drawA(){
+ if(!AZ)return;const q=$("q").value.trim().toLowerCase();
+ let r=AZ.rows.filter(x=>(!q||x[0].toLowerCase().includes(q)||(x[1]||"").toLowerCase().includes(q))&&(flt==0||(flt==1?x[6]!=null&&x[6]<=30:x[6]!=null&&x[6]>=70)));
+ $("tA").innerHTML=r.slice(0,lim).map(x=>`<tr><td><b>${x[0]}</b><div class="sub">${(x[1]||"").slice(0,26)}</div></td><td class="rs">${x[3]==null?"–":f2(x[3])}</td>${[5,6,7].map(i=>`<td class="rs ${cl(x[i])}">${x[i]==null?"–":x[i].toFixed(0)}</td>`).join("")}</tr>`).join("");
+ $("more").hidden=r.length<=lim;$("more").textContent=`Mostra altri (${r.length-lim})`;
+ $("flt").innerHTML=FL.map((n,i)=>`<button type="button" class="chip" data-f="${i}" aria-pressed="${i==flt}">${n}</button>`).join("");
+}
+function drawD(){
+ if(!DR)return;const cnt={};
+ DR.sections.forEach(s=>s.items.forEach(i=>cnt[i.t]=(cnt[i.t]||0)+1));
+ const top=Object.entries(cnt).filter(e=>e[1]>1).sort((a,b)=>b[1]-a[1]).slice(0,15);
+ const L=(t,a)=>`<div class="card"><div class="sub" style="margin-bottom:6px">${t}</div>${a.map(x=>`<div class="li"><a href="https://www.dataroma.com/m/stock.php?sym=${x[0]}" target="_blank" rel="noopener">${x[0]}</a><span>${x[1]}</span></div>`).join("")}</div>`;
+ $("vD").innerHTML=(top.length?L("In più liste (segnali convergenti)",top.map(e=>[e[0],e[1]+" liste"])):"")+DR.sections.map(s=>L(s.title,s.items.slice(0,10).map(i=>[i.t,(i.n||"").slice(0,24)]))).join("")+(DR.error?`<p class="note">${DR.error}</p>`:"")+'<p class="note">Mostra cosa possiedono e comprano i gestori (dati 13F in ritardo): non è una raccomandazione.</p>';
+}
+async function loadM(){
+ try{AZ=await getJ("azioni");$("mst").textContent="Azioni aggiornate il "+ts(AZ.updated)+" ("+AZ.count+" titoli)";drawA()}catch(e){$("mst").textContent="Dati azioni non ancora disponibili."}
+ try{DR=await getJ("dataroma");drawD()}catch(e){}
+}
+$("q").addEventListener("input",()=>{lim=100;drawA()});$("more").addEventListener("click",()=>{lim+=150;drawA()});
+$("flt").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(b){flt=+b.dataset.f;lim=100;drawA()}});
+[["mA",1],["mD",0]].forEach(([id,a])=>$(id).addEventListener("click",()=>{$("vA").hidden=!a;$("vD").hidden=!!a;$("mA").setAttribute("aria-pressed",!!a);$("mD").setAttribute("aria-pressed",!a)}));
+build();update();sync();fxStatus();loadM();
+if(S.fxSrc!="man")loadFx();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
