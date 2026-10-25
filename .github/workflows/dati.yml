@@ -5,7 +5,7 @@ on:
   workflow_dispatch: {}
 permissions:
   contents: write
-  concurrency:
+concurrency:
   group: aggiorna-dati
   cancel-in-progress: false
 jobs:
@@ -20,7 +20,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install yfinance pandas numpy openpyxl requests beautifulsoup4
       - run: python aggiorna_dati.py
-        - name: Salva i dati
+      - name: Salva i dati
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
