@@ -20,6 +20,8 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install yfinance pandas numpy openpyxl requests beautifulsoup4
       - run: python aggiorna_dati.py
+      - run: python aggiorna_consigli.py
+        continue-on-error: true
       - name: Salva i dati
         run: |
           git config user.name "github-actions"
