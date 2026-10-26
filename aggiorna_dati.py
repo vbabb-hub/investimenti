@@ -7,6 +7,15 @@ import aggiorna_azioni_usa as m
 def num(v, nd=2):
     return None if v is None or (isinstance(v, float) and np.isnan(v)) else round(float(v), nd)
 
+def feat(s):
+    """Momentum 12 mesi esclusi gli ultimi 21 giorni, volatilità annua, calo massimo a 1 anno."""
+    if s is None or len(s.dropna()) < 130:
+        return [None, None, None]
+    c = s.dropna()
+    t = c.tail(252)
+    return [num(c.iloc[-22] / c.iloc[max(0, len(c) - 253)] - 1, 3),
+            num(t.pct_change().std() * np.sqrt(252), 3), num((t / t.cummax() - 1).min(), 3)]
+
 def azioni(limit=None):
     uni = m.get_universe().sort_values("marketCap", ascending=False)
     if limit:
@@ -21,7 +30,7 @@ def azioni(limit=None):
                      num(m.sma(d[k])) if k in d else None,
                      num(m.rsi(h[k]), 1) if k in h else None,
                      num(m.rsi(d[k]), 1) if k in d else None,
-                     num(m.rsi(w[k]), 1) if k in w else None])
+                     num(m.rsi(w[k]), 1) if k in w else None] + feat(d.get(k)))
     return {"updated": dt.datetime.utcnow().isoformat(timespec="minutes") + "Z", "count": len(rows), "rows": rows}
 
 KEYS = [
@@ -95,4 +104,3 @@ if __name__ == "__main__":
             continue  # mantiene il file precedente
         json.dump(data, open(f"dati/{name}.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
         print(f"{name}: scritto", file=sys.stderr)
-        

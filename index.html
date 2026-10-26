@@ -39,7 +39,7 @@ tr.sel td{font-weight:600;color:var(--ac)}
 .verdict{background:var(--ac2);border-radius:10px;padding:10px 12px;margin-top:10px;font-weight:600}
 .note{font-size:.82rem;color:var(--mut);margin:8px 2px}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--sf);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;min-height:60px;border:0;background:none;color:var(--mut);font:inherit;font-size:.82rem}
+nav button{flex:1;min-height:60px;border:0;background:none;color:var(--mut);font:inherit;font-size:.76rem;padding:0 2px}
 nav button[aria-current=page]{color:var(--ac);font-weight:700;box-shadow:inset 0 3px 0 var(--ac)}
 .ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.ph b{font:600 1.15rem Georgia,serif}.ph span{font-variant-numeric:tabular-nums;color:var(--ac);font-weight:600}.pd{margin:6px 0 8px;font-size:.92rem}.pm{font-size:.82rem;color:var(--mut);margin:0 0 6px}
 .rs{font-variant-numeric:tabular-nums;font-size:.85rem}.ov{color:var(--bad);font-weight:600}.os{color:var(--ac);font-weight:600}.chip{min-height:44px}.li{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--ln)}.li a{color:var(--ac);font-weight:600}
@@ -93,6 +93,13 @@ nav button[aria-current=page]{color:var(--ac);font-weight:700;box-shadow:inset 0
  <div id="vA"><div class="seg" id="flt"></div><input id="q" placeholder="Cerca ticker o nome" aria-label="Cerca"><div class="card"><table><thead><tr><th>Titolo</th><th>Prezzo</th><th>1h</th><th>1g</th><th>1s</th></tr></thead><tbody id="tA"></tbody></table><button class="reset" id="more" type="button">Mostra altri</button></div><p class="note">RSI a 14 periodi: 70 o più ipercomprato (rosso), 30 o meno ipervenduto (verde). Dati ritardati, aggiornati ogni sera. Non è una raccomandazione.</p></div>
  <div id="vD" hidden></div>
 </section>
+<section id="p-con" hidden>
+ <p class="verdict" style="font-weight:500;font-size:.88rem">Candidati scelti con regole fisse, non consigli personalizzati. Verifica su eToro che il titolo sia disponibile: gli short sono in genere CFD, con costi notturni e leva. Un risultato passato non garantisce quello futuro.</p>
+ <div class="seg"><button type="button" id="cL" aria-pressed="true">Acquisto</button><button type="button" id="cS" aria-pressed="false">Short</button></div>
+ <p class="note" id="cst" role="status"></p>
+ <div id="cl"></div>
+ <div class="card" id="ch" hidden></div>
+</section>
 <section id="p-set" hidden>
  <div id="prof"></div>
  <div class="card">
@@ -117,7 +124,8 @@ nav button[aria-current=page]{color:var(--ac);font-weight:700;box-shadow:inset 0
  <button data-p="sim" aria-current="page">Simula</button>
  <button data-p="obj">Obiettivo</button>
  <button data-p="mkt">Mercato</button>
- <button data-p="set">Profili e cambio</button>
+ <button data-p="con">Consigli</button>
+ <button data-p="set">Profili</button>
 </nav>
 <script>
 const NAMES=["Basso","Medio","Alto","Bitcoin"];
@@ -172,7 +180,7 @@ function build(){
  document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
   const p=b.dataset.p;document.querySelectorAll("section").forEach(s=>s.hidden=s.id!="p-"+p);
   document.querySelectorAll("nav button").forEach(x=>x.removeAttribute("aria-current"));b.setAttribute("aria-current","page");
-  $("ttl").textContent={sim:"Simula il tuo capitale",obj:"Quanto serve per arrivare all’obiettivo",mkt:"Dati di mercato",set:"Profili e cambio"}[p];window.scrollTo(0,0)}));
+  $("ttl").textContent={sim:"Simula il tuo capitale",obj:"Quanto serve per arrivare all’obiettivo",mkt:"Dati di mercato",con:"Candidati da approfondire",set:"Profili e cambio"}[p];window.scrollTo(0,0)}));
 }
 const fmtD=d=>d?d.split("-").reverse().join("/"):"";
 function fxStatus(fail){$("fxs").textContent=fail?"Cambio automatico non disponibile: resta il valore attuale, che puoi modificare a mano.":S.fxSrc=="auto"&&S.fxDate?"Cambio automatico del "+fmtD(S.fxDate)+" (Frankfurter, tassi della Banca centrale europea).":"Cambio inserito a mano: premi «Aggiorna il cambio» per usare quello automatico."}
@@ -217,7 +225,19 @@ async function loadM(){
 $("q").addEventListener("input",()=>{lim=100;drawA()});$("more").addEventListener("click",()=>{lim+=150;drawA()});
 $("flt").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(b){flt=+b.dataset.f;lim=100;drawA()}});
 [["mA",1],["mD",0]].forEach(([id,a])=>$(id).addEventListener("click",()=>{$("vA").hidden=!a;$("vD").hidden=!!a;$("mA").setAttribute("aria-pressed",!!a);$("mD").setAttribute("aria-pressed",!a)}));
-build();update();sync();fxStatus();loadM();
+let CO=null,cs="long";
+const pc=v=>v==null?"–":(v*100).toFixed(1)+"%",pk=v=>v==null?"":v>=0?"os":"ov";
+function drawC(){
+ if(!CO)return;const L=CO[cs]||[];
+ $("cl").innerHTML=L.length?L.map(x=>`<div class="card"><div class="ph"><b>${x.t}</b><span>${x.s.toFixed(0)}/100</span></div><p class="pm">${(x.n||"").slice(0,32)}, ${x.p==null?"":f2(x.p)} $</p><p class="pd">${x.w.map(w=>"• "+w).join("<br>")}</p><p class="pm">Qualità ${x.b.q}, valore ${x.b.v}, momentum ${x.b.m}, conferme ${x.b.c}, ingresso ${x.b.e}</p><p class="pm">Idea invalidata ${cs=="long"?"sotto":"sopra"} ${f2(x.sma)} $ (media 52 sett.). <a href="https://finance.yahoo.com/quote/${x.t}" target="_blank" rel="noopener" style="color:var(--ac)">Scheda</a></p></div>`).join(""):'<p class="note">Nessun candidato supera i filtri oggi.</p>';
+ const h=CO.storico||[];$("ch").hidden=!h.length;
+ $("ch").innerHTML='<div class="sub" style="margin-bottom:6px">Come sono andati i candidati proposti in passato (media dei 5 titoli)</div><table><thead><tr><th>Data</th><th>Giorni</th><th>Acquisto</th><th>Short</th></tr></thead><tbody>'+h.map(r=>`<tr><td>${r.d.split("-").reverse().join("/")}</td><td>${r.g}</td><td class="${pk(r.l)}">${pc(r.l)}</td><td class="${pk(r.s)}">${pc(r.s)}</td></tr>`).join("")+"</tbody></table>";
+}
+async function loadC(){
+ try{CO=await getJ("consigli");$("cst").textContent="Aggiornati il "+ts(CO.updated)+". Scelti tra "+CO.pool[0]+" titoli in trend positivo e "+CO.pool[1]+" in trend negativo, max 2 per settore.";drawC()}catch(e){$("cst").textContent="Candidati non ancora disponibili."}
+}
+[["cL","long"],["cS","short"]].forEach(([id,k])=>$(id).addEventListener("click",()=>{cs=k;$("cL").setAttribute("aria-pressed",k=="long");$("cS").setAttribute("aria-pressed",k=="short");drawC()}));
+build();update();sync();fxStatus();loadM();loadC();
 if(S.fxSrc!="man")loadFx();
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 </script>
